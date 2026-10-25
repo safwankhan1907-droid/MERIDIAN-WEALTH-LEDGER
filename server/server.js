@@ -8,14 +8,14 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// Connect to MongoDB Atlas (removed legacy options)
+// Connect to MongoDB Atlas
 mongoose.connect(process.env.MONGO_URI)
 .then(() => console.log('MongoDB Connected successfully'))
 .catch((err) => console.log('MongoDB connection error:', err));
 
 // --- ROUTES ---
 const authRoutes = require('./Routes/authRoutes');
-const transactionRoutes = require('./Routes/Transaction');
+const transactionRoutes = require('./Routes/transaction'); // Small 't' fixed here
 
 app.use('/api/auth', authRoutes);
 app.use('/api/transactions', transactionRoutes);
