@@ -121,7 +121,7 @@ export default function Auth() {
               className="w-full py-3.5 px-6 bg-gradient-to-r from-[#d4af37] via-[#e5c158] to-[#b38f27] hover:opacity-95 text-[#0b2219] font-bold rounded-xl shadow-lg transition-all duration-300 tracking-widest uppercase text-sm mt-2 cursor-pointer"
             >
               Complete Registration
-            </Button>
+            </button>
 
             <div className="text-center mt-3">
               <span className="text-xs text-gray-300">Already registered? </span>
