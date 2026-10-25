@@ -19,7 +19,7 @@ export default function Auth() {
     setError('');
     setMessage('');
     try {
-      const res = await axios.post('http://localhost:5000/api/auth/login', { email, password });
+      const res = await axios.post('/api/auth/login', { email, password });
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('user', JSON.stringify(res.data.user));
       
@@ -36,7 +36,7 @@ export default function Auth() {
     setError('');
     setMessage('');
     try {
-      const res = await axios.post('http://localhost:5000/api/auth/register', { name, email, password });
+      const res = await axios.post('/api/auth/register', { name, email, password });
       setMessage(res.data.message || 'Registration successful! Please sign in.');
       setTimeout(() => {
         setIsRegistering(false);
@@ -121,7 +121,7 @@ export default function Auth() {
               className="w-full py-3.5 px-6 bg-gradient-to-r from-[#d4af37] via-[#e5c158] to-[#b38f27] hover:opacity-95 text-[#0b2219] font-bold rounded-xl shadow-lg transition-all duration-300 tracking-widest uppercase text-sm mt-2 cursor-pointer"
             >
               Complete Registration
-            </button>
+            </Button>
 
             <div className="text-center mt-3">
               <span className="text-xs text-gray-300">Already registered? </span>
