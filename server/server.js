@@ -1,35 +1,54 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const path = require('path');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const mongoSanitize = require('express-mongo-sanitize');
 require('dotenv').config();
 
 const app = express();
-app.use(express.json());
+
+// 1. Security Headers (OWASP: Security Misconfigurations & Cryptographic Failures)
+app.use(helmet());
+
+// 2. Data Sanitization against NoSQL Query Injection (OWASP: Injection Flaws)
+app.use(mongoSanitize());
+
+// 3. Rate Limiting to prevent Brute-Force & DDoS (OWASP: Broken Authentication)
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  message: { message: 'Too many requests from this IP, please try again after 15 minutes.' }
+});
+app.use('/api/', limiter);
+
+// Strict limiter for authentication routes
+const authLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 10, // Max 10 login/register attempts per hour
+  message: { message: 'Too many authentication attempts. Please try again later.' }
+});
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/register', authLimiter);
+
+// Middleware
 app.use(cors());
+app.use(express.json({ limit: '10kb' })); // Body limit to prevent payload attacks
 
-// Connect to MongoDB Atlas
-mongoose.connect(process.env.MONGO_URI)
-.then(() => console.log('MongoDB Connected successfully'))
-.catch((err) => console.log('MongoDB connection error:', err));
-
-// --- ROUTES ---
-const authRoutes = require('./Routes/authRoutes');
-const transactionRoutes = require('./Routes/transaction'); // Small 't' fixed here
+// Routes
+const authRoutes = require('./routes/authRoutes');
+const transactionRoutes = require('./routes/transactionRoutes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/transactions', transactionRoutes);
 
-// --- PRODUCTION STATIC SERVING ---
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../client/dist')));
-
-  app.get('*', (req, res) => {
-    res.sendFile(path.resolve(__dirname, '../client', 'dist', 'index.html'));
-  });
-}
-
+// Database Connection & Server Start
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://safwan:safwan1234@cluster0.mongodb.net/meridian';
+
+mongoose.connect(MONGO_URI)
+  .then(() => {
+    console.log('MongoDB Atlas Connected Securely');
+    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+  })
+  .catch(err => console.error('Database connection error:', err));
