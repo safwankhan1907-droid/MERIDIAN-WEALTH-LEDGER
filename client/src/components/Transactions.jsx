@@ -7,8 +7,12 @@ export default function Transactions() {
   const [amount, setAmount] = useState('');
   const [type, setType] = useState('expense');
   const [category, setCategory] = useState('General');
+  
+  // Field specific errors for inline popups near input boxes
+  const [titleError, setTitleError] = useState('');
+  const [amountError, setAmountError] = useState('');
+  
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
   useEffect(() => {
@@ -27,43 +31,39 @@ export default function Transactions() {
     }
   };
 
-  // Description input handler: sirf alphabets aur spaces allow karega (numbers block karega)
+  // Description input handler: inline error right below the input box if numbers are entered
   const handleTitleChange = (e) => {
     const val = e.target.value;
-    // Regex jo numbers ko reject kar dega
-    if (/^[a-zA-Z\s]*$/.test(val)) {
-      setTitle(val);
-      setError('');
+    setTitle(val);
+    if (/\d/.test(val)) {
+      setTitleError('Please enter a valid description (numbers are not allowed).');
     } else {
-      setError('Description mein sirf text (strings) allow hai, numbers nahi.');
+      setTitleError('');
     }
   };
 
-  // Amount input handler: sirf integer numbers allow karega
+  // Amount input handler: inline error right below if non-integer or text is entered
   const handleAmountChange = (e) => {
     const val = e.target.value;
-    // Regex jo sirf integers allow karega
-    if (val === '' || /^\d+$/.test(val)) {
-      setAmount(val);
-      setError('');
+    setAmount(val);
+    if (val !== '' && !/^\d+$/.test(val)) {
+      setAmountError('Please enter the value (integer numbers only).');
     } else {
-      setError('Amount mein sirf integer numbers allow hai.');
+      setAmountError('');
     }
   };
 
   const handleAddTransaction = async (e) => {
     e.preventDefault();
-    setError('');
     setSuccess('');
 
-    // Extra validation check before submitting
     if (/\d/.test(title)) {
-      setError('Description mein numbers nahi aa sakte.');
+      setTitleError('Please enter a valid description (numbers are not allowed).');
       return;
     }
 
     if (!/^\d+$/.test(amount)) {
-      setError('Amount ek valid integer hona chahiye.');
+      setAmountError('Please enter the value (integer numbers only).');
       return;
     }
 
@@ -79,9 +79,11 @@ export default function Transactions() {
       setSuccess('Transaction successfully recorded in secure ledger.');
       setTitle('');
       setAmount('');
+      setTitleError('');
+      setAmountError('');
       fetchTransactions();
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to record transaction.');
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -118,32 +120,47 @@ export default function Transactions() {
         <div className="lg:col-span-1 bg-[#0b2219]/90 border border-[#d4af37]/30 rounded-3xl p-8 shadow-2xl backdrop-blur-xl h-fit">
           <h3 className="text-lg font-serif font-bold text-[#fbf9f1] mb-4">Record New Entry</h3>
 
-          {error && <div className="mb-4 p-3 bg-rose-500/20 border border-rose-500/40 text-rose-300 text-xs rounded-xl">{error}</div>}
           {success && <div className="mb-4 p-3 bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs rounded-xl">{success}</div>}
 
           <form onSubmit={handleAddTransaction} className="space-y-4">
+            {/* Description Field */}
             <div>
-              <label className="block text-[10px] uppercase tracking-wider text-[#d4af37] font-semibold mb-1">Description (Text Only)</label>
+              <label className="block text-[10px] uppercase tracking-wider text-[#d4af37] font-semibold mb-1">Description</label>
               <input
                 type="text"
                 value={title}
                 onChange={handleTitleChange}
                 placeholder="e.g. Dividend Payout"
                 required
-                className="w-full px-4 py-3 rounded-xl border border-[#d4af37]/30 bg-white/10 text-white placeholder-gray-400 focus:outline-none focus:border-[#d4af37] text-sm"
+                className={`w-full px-4 py-3 rounded-xl border bg-white/10 text-white placeholder-gray-400 focus:outline-none text-sm ${
+                  titleError ? 'border-rose-500 focus:border-rose-500' : 'border-[#d4af37]/30 focus:border-[#d4af37]'
+                }`}
               />
+              {titleError && (
+                <p className="mt-1 text-[11px] text-rose-400 font-medium animate-pulse">
+                  ⚠ {titleError}
+                </p>
+              )}
             </div>
 
+            {/* Amount Field */}
             <div>
-              <label className="block text-[10px] uppercase tracking-wider text-[#d4af37] font-semibold mb-1">Amount (Integer ₹)</label>
+              <label className="block text-[10px] uppercase tracking-wider text-[#d4af37] font-semibold mb-1">Amount (₹)</label>
               <input
                 type="text"
                 value={amount}
                 onChange={handleAmountChange}
                 placeholder="e.g. 5000"
                 required
-                className="w-full px-4 py-3 rounded-xl border border-[#d4af37]/30 bg-white/10 text-white placeholder-gray-400 focus:outline-none focus:border-[#d4af37] text-sm font-serif"
+                className={`w-full px-4 py-3 rounded-xl border bg-white/10 text-white placeholder-gray-400 focus:outline-none text-sm font-serif ${
+                  amountError ? 'border-rose-500 focus:border-rose-500' : 'border-[#d4af37]/30 focus:border-[#d4af37]'
+                }`}
               />
+              {amountError && (
+                <p className="mt-1 text-[11px] text-rose-400 font-medium animate-pulse">
+                  ⚠ {amountError}
+                </p>
+              )}
             </div>
 
             <div>
@@ -172,8 +189,10 @@ export default function Transactions() {
 
             <button
               type="submit"
-              disabled={loading}
-              className="w-full py-3.5 bg-gradient-to-r from-[#d4af37] to-[#b38f27] hover:opacity-95 text-[#061a12] font-bold rounded-xl shadow-lg transition-all tracking-widest uppercase text-xs cursor-pointer mt-2"
+              disabled={loading || Boolean(titleError) || Boolean(amountError)}
+              className={`w-full py-3.5 font-bold rounded-xl shadow-lg transition-all tracking-widest uppercase text-xs cursor-pointer mt-2 ${
+                titleError || amountError ? 'bg-gray-600 text-gray-300 cursor-not-allowed' : 'bg-gradient-to-r from-[#d4af37] to-[#b38f27] hover:opacity-95 text-[#061a12]'
+              }`}
             >
               {loading ? 'Recording...' : 'Commit to Ledger'}
             </button>
