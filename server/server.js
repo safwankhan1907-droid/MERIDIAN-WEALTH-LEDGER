@@ -8,24 +8,23 @@ require('dotenv').config();
 
 const app = express();
 
-// 1. Security Headers (OWASP: Security Misconfigurations & Cryptographic Failures)
+// 1. Security Headers (OWASP)
 app.use(helmet());
 
-// 2. Data Sanitization against NoSQL Query Injection (OWASP: Injection Flaws)
+// 2. Data Sanitization against NoSQL Query Injection
 app.use(mongoSanitize());
 
-// 3. Rate Limiting to prevent Brute-Force & DDoS (OWASP: Broken Authentication)
+// 3. Rate Limiting
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
+  windowMs: 15 * 60 * 1000,
+  max: 100,
   message: { message: 'Too many requests from this IP, please try again after 15 minutes.' }
 });
 app.use('/api/', limiter);
 
-// Strict limiter for authentication routes
 const authLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour
-  max: 10, // Max 10 login/register attempts per hour
+  windowMs: 60 * 60 * 1000,
+  max: 10,
   message: { message: 'Too many authentication attempts. Please try again later.' }
 });
 app.use('/api/auth/login', authLimiter);
@@ -33,11 +32,11 @@ app.use('/api/auth/register', authLimiter);
 
 // Middleware
 app.use(cors());
-app.use(express.json({ limit: '10kb' })); // Body limit to prevent payload attacks
+app.use(express.json({ limit: '10kb' }));
 
-// Routes
-const authRoutes = require('./routes/authRoutes');
-const transactionRoutes = require('./routes/transactionRoutes');
+// Routes - match your exact folder case (change to './routes/authRoutes' if your folder is lowercase)
+const authRoutes = require('./Routes/authRoutes');
+const transactionRoutes = require('./Routes/transactionRoutes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/transactions', transactionRoutes);
