@@ -27,17 +27,53 @@ export default function Transactions() {
     }
   };
 
+  // Description input handler: sirf alphabets aur spaces allow karega (numbers block karega)
+  const handleTitleChange = (e) => {
+    const val = e.target.value;
+    // Regex jo numbers ko reject kar dega
+    if (/^[a-zA-Z\s]*$/.test(val)) {
+      setTitle(val);
+      setError('');
+    } else {
+      setError('Description mein sirf text (strings) allow hai, numbers nahi.');
+    }
+  };
+
+  // Amount input handler: sirf integer numbers allow karega
+  const handleAmountChange = (e) => {
+    const val = e.target.value;
+    // Regex jo sirf integers allow karega
+    if (val === '' || /^\d+$/.test(val)) {
+      setAmount(val);
+      setError('');
+    } else {
+      setError('Amount mein sirf integer numbers allow hai.');
+    }
+  };
+
   const handleAddTransaction = async (e) => {
     e.preventDefault();
     setError('');
     setSuccess('');
+
+    // Extra validation check before submitting
+    if (/\d/.test(title)) {
+      setError('Description mein numbers nahi aa sakte.');
+      return;
+    }
+
+    if (!/^\d+$/.test(amount)) {
+      setError('Amount ek valid integer hona chahiye.');
+      return;
+    }
+
     setLoading(true);
 
     try {
       const token = localStorage.getItem('token');
       await axios.post(
         '/api/transactions',
-        { title, amount: Number(amount), type, category },
+        { title, amount: parseInt(amount, 10), type, category },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setSuccess('Transaction successfully recorded in secure ledger.');
@@ -65,7 +101,6 @@ export default function Transactions() {
 
   return (
     <div className="space-y-10 animate-fade-in">
-      {/* Header */}
       <div className="bg-[#0b2219]/80 border border-[#d4af37]/20 rounded-3xl p-8 backdrop-blur-md shadow-xl">
         <span className="text-[10px] uppercase tracking-[0.4em] text-[#d4af37] font-semibold px-3 py-1 rounded-full border border-[#d4af37]/30 bg-[#d4af37]/10">
           Financial Ledger Management
@@ -88,24 +123,24 @@ export default function Transactions() {
 
           <form onSubmit={handleAddTransaction} className="space-y-4">
             <div>
-              <label className="block text-[10px] uppercase tracking-wider text-[#d4af37] font-semibold mb-1">Description</label>
+              <label className="block text-[10px] uppercase tracking-wider text-[#d4af37] font-semibold mb-1">Description (Text Only)</label>
               <input
                 type="text"
                 value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="e.g. Dividend Payout / Real Estate"
+                onChange={handleTitleChange}
+                placeholder="e.g. Dividend Payout"
                 required
                 className="w-full px-4 py-3 rounded-xl border border-[#d4af37]/30 bg-white/10 text-white placeholder-gray-400 focus:outline-none focus:border-[#d4af37] text-sm"
               />
             </div>
 
             <div>
-              <label className="block text-[10px] uppercase tracking-wider text-[#d4af37] font-semibold mb-1">Amount (₹)</label>
+              <label className="block text-[10px] uppercase tracking-wider text-[#d4af37] font-semibold mb-1">Amount (Integer ₹)</label>
               <input
-                type="number"
+                type="text"
                 value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                placeholder="0.00"
+                onChange={handleAmountChange}
+                placeholder="e.g. 5000"
                 required
                 className="w-full px-4 py-3 rounded-xl border border-[#d4af37]/30 bg-white/10 text-white placeholder-gray-400 focus:outline-none focus:border-[#d4af37] text-sm font-serif"
               />
@@ -129,7 +164,7 @@ export default function Transactions() {
                 type="text"
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                placeholder="e.g. Investments, Operations"
+                placeholder="e.g. Investments"
                 required
                 className="w-full px-4 py-3 rounded-xl border border-[#d4af37]/30 bg-white/10 text-white placeholder-gray-400 focus:outline-none focus:border-[#d4af37] text-sm"
               />
