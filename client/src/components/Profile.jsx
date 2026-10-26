@@ -6,11 +6,42 @@ export default function Profile() {
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(storedUser.name || '');
   const [email, setEmail] = useState(storedUser.email || '');
-  const [password, setPassword] = useState('');
+  
+  // Password change states
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [isCurrentPasswordVerified, setIsCurrentPasswordVerified] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
+  // Step 1: Verify current password first
+  const handleVerifyCurrentPassword = async (e) => {
+    e.preventDefault();
+    setError('');
+    setMessage('');
+    setLoading(true);
+
+    try {
+      const token = localStorage.getItem('token');
+      // Backend endpoint to verify current password
+      await axios.post(
+        '/api/auth/verify-password',
+        { currentPassword },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setIsCurrentPasswordVerified(true);
+      setMessage('Current password verified. You can now set a new password.');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Incorrect current password.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Step 2: Save final profile updates
   const handleUpdate = async (e) => {
     e.preventDefault();
     setMessage('');
@@ -21,13 +52,20 @@ export default function Profile() {
       const token = localStorage.getItem('token');
       const res = await axios.put(
         '/api/auth/update',
-        { name, email, password: password ? password : undefined },
+        { 
+          name, 
+          email, 
+          currentPassword: currentPassword ? currentPassword : undefined,
+          password: newPassword ? newPassword : undefined 
+        },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
       localStorage.setItem('user', JSON.stringify(res.data.user || { name, email }));
       setMessage('Profile updated successfully.');
-      setPassword('');
+      setNewPassword('');
+      setCurrentPassword('');
+      setIsCurrentPasswordVerified(false);
       setIsEditing(false);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to update profile.');
@@ -82,16 +120,47 @@ export default function Profile() {
             />
           </div>
 
-          {isEditing && (
-            <div>
-              <label className="block text-[10px] uppercase tracking-wider text-[#d4af37] font-semibold mb-2">New Password (optional)</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter new password"
-                className="w-full px-4 py-3.5 rounded-xl border border-[#d4af37]/30 bg-white/10 text-white placeholder-gray-400 focus:outline-none focus:border-[#d4af37] text-sm"
-              />
+          {/* Password Change Security Flow */}
+          {isEditing && !isCurrentPasswordVerified && (
+            <div className="bg-black/30 p-6 rounded-2xl border border-[#d4af37]/20 space-y-4">
+              <p className="text-xs text-[#d4af37] uppercase tracking-wider font-semibold">Security Verification Required</p>
+              <div>
+                <label className="block text-[10px] uppercase tracking-wider text-gray-300 mb-2">Enter Current Password to Change Credentials</label>
+                <input
+                  type="password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                  className="w-full px-4 py-3.5 rounded-xl border border-[#d4af37]/30 bg-white/10 text-white placeholder-gray-400 focus:outline-none focus:border-[#d4af37] text-sm"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={handleVerifyCurrentPassword}
+                disabled={loading || !currentPassword}
+                className="w-full py-3 bg-[#d4af37]/20 hover:bg-[#d4af37]/30 border border-[#d4af37]/40 text-[#d4af37] font-bold rounded-xl transition-all tracking-widest uppercase text-xs cursor-pointer"
+              >
+                {loading ? 'Verifying...' : 'Verify Current Password'}
+              </button>
+            </div>
+          )}
+
+          {/* New Password Field Appears ONLY After Current Password is Verified */}
+          {isEditing && isCurrentPasswordVerified && (
+            <div className="bg-emerald-500/10 p-6 rounded-2xl border border-emerald-500/30 space-y-4 animate-fade-in">
+              <p className="text-xs text-emerald-400 uppercase tracking-wider font-semibold">✓ Current Password Verified</p>
+              <div>
+                <label className="block text-[10px] uppercase tracking-wider text-emerald-300 mb-2">New Password</label>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Enter new secure password"
+                  required
+                  className="w-full px-4 py-3.5 rounded-xl border border-emerald-500/40 bg-white/10 text-white placeholder-gray-400 focus:outline-none focus:border-emerald-400 text-sm"
+                />
+              </div>
             </div>
           )}
 
@@ -108,7 +177,12 @@ export default function Profile() {
               <>
                 <button
                   type="button"
-                  onClick={() => setIsEditing(false)}
+                  onClick={() => {
+                    setIsEditing(false);
+                    setIsCurrentPasswordVerified(false);
+                    setCurrentPassword('');
+                    setNewPassword('');
+                  }}
                   className="w-1/2 py-4 border border-rose-500/40 text-rose-300 hover:bg-rose-500/10 font-bold rounded-xl transition-all tracking-widest uppercase text-xs cursor-pointer"
                 >
                   Cancel
