@@ -34,9 +34,9 @@ app.use('/api/auth/register', authLimiter);
 app.use(cors());
 app.use(express.json({ limit: '10kb' }));
 
-// Routes - match your exact folder case (change to './routes/authRoutes' if your folder is lowercase)
+// Routes (matching exact filenames: authRoutes and transaction)
 const authRoutes = require('./Routes/authRoutes');
-const transactionRoutes = require('./Routes/transactionRoutes');
+const transactionRoutes = require('./Routes/transaction');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/transactions', transactionRoutes);
