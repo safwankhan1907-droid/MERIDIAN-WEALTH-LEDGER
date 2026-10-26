@@ -34,38 +34,8 @@ export default function Dashboard({ setActiveTab }) {
   const netBalance = totalIncome - totalExpense;
 
   return (
-    <div className="space-y-10 animate-fade-in">
-      {/* Welcome Banner */}
-      <div className="bg-gradient-to-r from-[#0b2219] via-[#0d2a1f] to-[#0b2219] border border-[#d4af37]/30 rounded-3xl p-10 shadow-2xl relative overflow-hidden">
-        <div className="absolute -right-10 -bottom-10 w-64 h-64 bg-[#d4af37]/5 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="max-w-3xl">
-          <span className="text-[10px] uppercase tracking-[0.4em] text-[#d4af37] font-semibold px-3 py-1 rounded-full border border-[#d4af37]/30 bg-[#d4af37]/10">
-            Secure Ledger Active
-          </span>
-          <h2 className="text-4xl font-serif font-bold text-[#fbf9f1] mt-4 tracking-wide">
-            Portfolio Overview
-          </h2>
-          <p className="text-gray-300 text-sm mt-3 leading-relaxed">
-            Welcome to your encrypted private wealth repository. Monitor liquidity, asset allocations, and historical ledgers with absolute confidentiality.
-          </p>
-          <div className="mt-6 flex gap-4">
-            <button
-              onClick={() => setActiveTab('transactions')}
-              className="px-6 py-3 bg-gradient-to-r from-[#d4af37] to-[#b38f27] text-[#061a12] font-bold rounded-xl text-xs uppercase tracking-widest hover:opacity-95 transition-all shadow-lg cursor-pointer"
-            >
-              Manage Transactions
-            </button>
-            <button
-              onClick={() => setActiveTab('profile')}
-              className="px-6 py-3 border border-[#d4af37]/40 text-[#fbf9f1] font-semibold rounded-xl text-xs uppercase tracking-widest hover:bg-[#d4af37]/10 transition-all cursor-pointer"
-            >
-              View Profile
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Financial Metric Cards (Spacious) */}
+    <div className="space-y-10 animate-fade-in pt-4">
+      {/* Financial Metric Cards (Spacious & Clean) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-[#0b2219]/80 border border-[#d4af37]/20 rounded-3xl p-8 shadow-xl backdrop-blur-md">
           <p className="text-xs uppercase tracking-[0.25em] text-[#d4af37] font-semibold">Net Liquid Wealth</p>
