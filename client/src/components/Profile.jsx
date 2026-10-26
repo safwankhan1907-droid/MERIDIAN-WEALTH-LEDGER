@@ -7,7 +7,6 @@ export default function Profile() {
   const [name, setName] = useState(storedUser.name || '');
   const [email, setEmail] = useState(storedUser.email || '');
   
-  // Password change states
   const [currentPassword, setCurrentPassword] = useState('');
   const [isCurrentPasswordVerified, setIsCurrentPasswordVerified] = useState(false);
   const [newPassword, setNewPassword] = useState('');
@@ -16,7 +15,6 @@ export default function Profile() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
-  // Step 1: Verify current password first
   const handleVerifyCurrentPassword = async (e) => {
     e.preventDefault();
     setError('');
@@ -25,7 +23,6 @@ export default function Profile() {
 
     try {
       const token = localStorage.getItem('token');
-      // Backend endpoint to verify current password
       await axios.post(
         '/api/auth/verify-password',
         { currentPassword },
@@ -41,7 +38,6 @@ export default function Profile() {
     }
   };
 
-  // Step 2: Save final profile updates
   const handleUpdate = async (e) => {
     e.preventDefault();
     setMessage('');
@@ -120,12 +116,12 @@ export default function Profile() {
             />
           </div>
 
-          {/* Password Change Security Flow */}
+          {/* Current Password Verification Section */}
           {isEditing && !isCurrentPasswordVerified && (
             <div className="bg-black/30 p-6 rounded-2xl border border-[#d4af37]/20 space-y-4">
               <p className="text-xs text-[#d4af37] uppercase tracking-wider font-semibold">Security Verification Required</p>
               <div>
-                <label className="block text-[10px] uppercase tracking-wider text-gray-300 mb-2">Enter Current Password to Change Credentials</label>
+                <label className="block text-[10px] uppercase tracking-wider text-gray-300 mb-2">Enter Current Password to Change Password</label>
                 <input
                   type="password"
                   value={currentPassword}
@@ -146,10 +142,10 @@ export default function Profile() {
             </div>
           )}
 
-          {/* New Password Field Appears ONLY After Current Password is Verified */}
+          {/* New Password Appears Only When Verified */}
           {isEditing && isCurrentPasswordVerified && (
             <div className="bg-emerald-500/10 p-6 rounded-2xl border border-emerald-500/30 space-y-4 animate-fade-in">
-              <p className="text-xs text-emerald-400 uppercase tracking-wider font-semibold">✓ Current Password Verified</p>
+              <p className="text-xs text-emerald-400 uppercase tracking-wider font-semibold">✓ Current Password Verified Successfully</p>
               <div>
                 <label className="block text-[10px] uppercase tracking-wider text-emerald-300 mb-2">New Password</label>
                 <input
